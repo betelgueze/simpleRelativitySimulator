@@ -7,9 +7,9 @@ current features:
 
 features goal:  
 -inflation in early stage of evolution  
--black holes support(so big masses of matter that gravity stops energy spred from them)  
+-black holes support(so big masses of matter that gravity stops energy spread from them)  
 -gravity between particles of matter  
--matter dynamics(solves impossibility of energy spread)  
+-matter dynamics(solves impossibility of complete energy spread)  
 -actual relativity  
 -matter to energy(afterlife of a matter)  
 
