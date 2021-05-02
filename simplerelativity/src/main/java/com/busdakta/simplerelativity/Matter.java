@@ -16,8 +16,11 @@ public class Matter {
     public int momentum = 0;
     public int timeCreated = -1;
     
+    public static int matterCount = 0;
+    
     public Matter()
     {
+        ++matterCount;
     }
     
     boolean isActuallyMatter() {

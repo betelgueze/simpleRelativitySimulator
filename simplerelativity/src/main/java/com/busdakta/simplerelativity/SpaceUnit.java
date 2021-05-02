@@ -9,38 +9,39 @@ package com.busdakta.simplerelativity;
  *
  * @author famer
  */
-public class SpaceUnit {
-    public int energy;
-    public int energyBefore;
-    public Matter m;
-    
-    int curTime;
-    
-    //internal property
-    int x,y,z;
-    
+public class SpaceUnit extends UpperSpaceUnit {
+    private int curTime;
+    public boolean containsMatter;
     
     public SpaceUnit()
     {
-        x = y = z = curTime = energy = energyBefore = 0;
-        m = new Matter();
-    }
-    
-    public void setInternalProperties(Vec3 pos)
-    {
-        x = pos.x;
-        y = pos.y;
-        z = pos.z;
+        curTime = energy = energyBefore = 0;
+        energyPressure = new int[6];
+        containsMatter = false;
     }
 
+    @Override
     public void setInfEnergy() {
         energy = Integer.MAX_VALUE;
     }
     
-    void spreadEnergy(Universe un) {
+    @Override
+    public int getEnergy()
+    {
+        return energy;
+    }
+    
+    @Override
+    public int getEnergyWillingToAccept(int providedEnergy, int selfPressure, int maxEnergy)
+    {
+        return ((maxEnergy - selfPressure) * providedEnergy) / maxEnergy;
+    }
+    
+    @Override
+    void spreadEnergy(Universe un, int x, int y, int z) {
         //if su is matter its energy cannot fall below limit value
         int energyToRedistribute;
-        if(m.isActuallyMatter() && energyBefore > Parameters.limitEnergyVal)
+        if(containsMatter && energyBefore > Parameters.limitEnergyVal)
              energyToRedistribute = (energyBefore - Parameters.limitEnergyVal) >> 1;
         else
             energyToRedistribute = energyBefore >> 1;
@@ -48,38 +49,87 @@ public class SpaceUnit {
         if(energyToRedistribute == 0)
             return;
 
-        int energySlice = energyToRedistribute >> 3;
-        int energyAccepted = 0;
-        //for every neighbour analyze whether it can accept energy
-        energyAccepted += un.space[x][y][z + 1].spreadEnergy(un,energySlice,energyBefore);
-        energyAccepted += un.space[x][y + 1][z].spreadEnergy(un,energySlice,energyBefore);
-        energyAccepted += un.space[x][y + 1][z + 1].spreadEnergy(un,energySlice,energyBefore);
-        energyAccepted += un.space[x + 1][y][z].spreadEnergy(un,energySlice,energyBefore);
-        energyAccepted += un.space[x + 1][y][z + 1].spreadEnergy(un,energySlice,energyBefore);
-        energyAccepted += un.space[x + 1][y + 1][z].spreadEnergy(un,energySlice,energyBefore);
+        int [] energySlices = evaluateEnergySlices(energyToRedistribute);
+        spreadEnergyToNeighbours(energySlices,un,x,y,z);
         
-        energy -= (energyToRedistribute - energyAccepted);    
+        //and finally update my own energy
+        int aggr = aggregatedEnergy(energySlices);
+        energy += energyBefore - aggr;
+        
+        //if we distributed some energy, there is some universe change
+        if(aggr != 0)
+            un.changed = true;
     }
 
-    boolean applyEnergyChange(int time) {
-        energyBefore = energy;
+    @Override
+    boolean applyEnergyChange(int time, int x, int y, int z) {
         if(energy <= Parameters.limitEnergyVal)
         {
-            m.createUnitWeight(time);
+            createMatterAtPos(time,x,y,z);
+            energy -= Parameters.matterEnergy;
+            energyBefore = energy;
             return true;
         }
+        energyBefore = energy;
         return false;
     }
 
-    //returns value of energy accepted
-    private int spreadEnergy(Universe un, int providedEnergy, int limitEnergy) {
-        //if spaceUnit has bigger energy than limitEnergy, it cannot accept anything
-        if(energyBefore >= limitEnergy)
-            return 0;
+    /*
+        From energyBefore and from energy pressure of its neighbours calculates 
+        how much energy is actualy spreaded to its neighbours
+    */
+    private int[] evaluateEnergySlices(int energyToRedistribute) {
+        //energyBefore
+        //energyToRedistribute
+        //energyPressure[] 
+        //calculate energy that are neighbours willing to accept
+        int [] res = new int[6];
+        int i=0;
+        for(int item : energyPressure)
+        {
+            res[i] = (int) Math.floor(getSlice(energyBefore,item,energyToRedistribute));
+            ++i;
+        }
         
-        //evaluate how big portion of a provided energy is spaceUnit willing to accept
-        int acceptedEnergy = ((limitEnergy - energyBefore) * providedEnergy) / limitEnergy;
-        energy += acceptedEnergy;
-        return acceptedEnergy;
+        //check whether there is higher consumption than energy provided
+        int energyConsumption = aggregatedEnergy(res);
+        
+        if(energyConsumption > energyToRedistribute)
+        {
+            double factor = energyToRedistribute / energyConsumption;
+            for(int item : energyPressure)
+            {
+                item = (int) factor*item;
+            }  
+        }
+                
+        return res;
     }
+
+    private void spreadEnergyToNeighbours(int[] energySlices, Universe un, int x, int y, int z) {
+        un.leftNeighbour    (x, y, z).energy    += energySlices[0];
+        un.rightNeighbour   (x, y, z).energy    += energySlices[1];
+        un.topNeighbour     (x, y, z).energy    += energySlices[2];
+        un.bottomNeighbour  (x, y, z).energy    += energySlices[3];        
+        un.frontNeighbour   (x, y, z).energy    += energySlices[4];
+        un.backNeighbour    (x, y, z).energy    += energySlices[5];      
+    }
+
+    private int aggregatedEnergy(int [] aggr) {
+        int res = 0;
+        for(int i=0; i<6;++i)
+            res += aggr[i];
+        
+        return res;
+    }
+
+    private double getSlice(int max, int act, int avail) {
+        double maxd = max;
+        return ((maxd - act) / maxd) * avail;
+    }
+
+    private void createMatterAtPos(int time, int x, int y, int z) {
+        
+    }
+
 }

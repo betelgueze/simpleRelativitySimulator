@@ -11,5 +11,6 @@ package com.busdakta.simplerelativity;
  */
 public class Parameters {
     public enum Neighbourhood {NEUMAN, MOORE, EXTENDED};
-    static public int limitEnergyVal = 1 << 7;
+    static public int limitEnergyVal = 1 << 7;    
+    static public int matterEnergy = 1;
 }
