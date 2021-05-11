@@ -142,15 +142,15 @@ public class Universe {
         if(x > 0)
             return space[x-1][y][z];
         else
-            return new UpperSpaceUnit();
+            return null;
     }
     
     UpperSpaceUnit rightNeighbour(int x, int y, int z)
     {
-        if(x < (spaceSize - 2))
+        if(x < (spaceSize - 1))
             return space[x+1][y][z];
         else
-            return new UpperSpaceUnit();
+            return null;
     }
     
     UpperSpaceUnit bottomNeighbour(int x, int y, int z)
@@ -158,15 +158,15 @@ public class Universe {
         if(y > 0)
             return space[x][y-1][z];
         else
-            return new UpperSpaceUnit();
+            return null;
     }
     
     UpperSpaceUnit topNeighbour(int x, int y, int z)
     {
-        if(y < (spaceSize - 2))
+        if(y < (spaceSize - 1))
             return space[x][y+1][z];
         else
-            return new UpperSpaceUnit();
+            return null;
     }
     
     UpperSpaceUnit frontNeighbour(int x, int y, int z)
@@ -174,15 +174,15 @@ public class Universe {
         if(z > 0)
             return space[x][y][z-1];
         else
-            return new UpperSpaceUnit();
+            return null;
     }
     
     UpperSpaceUnit backNeighbour(int x, int y, int z)
     {
-        if(z < (spaceSize - 2))
+        if(z < (spaceSize - 1))
             return space[x][y][z+1];
         else
-            return new UpperSpaceUnit();
+            return null;
     }
     
     boolean isMantinel(int x, int y, int z)
@@ -198,15 +198,12 @@ public class Universe {
     }
 
     void applyEnergyPressure() {
-        for(int i= 0; i < spaceSize; ++i)
+        for(int i= 1; i < (spaceSize-1); ++i)
         {
-            for(int j= 0; j < spaceSize; ++j)
+            for(int j= 1; j < (spaceSize-1); ++j)
             {
-                for(int k= 0; k < spaceSize; ++k)
-                {
-                    if(isMantinel(i,j,k))
-                        continue;
-                    
+                for(int k= 1; k < (spaceSize-1); ++k)
+                {                    
                     UpperSpaceUnit su = space[i][j][k];
                     UpperSpaceUnit suNeighbour;
                     
@@ -231,7 +228,7 @@ public class Universe {
                     su.energyPressure[index] = suNeighbour.getEnergy();
                     
                     ++index;                    
-                    suNeighbour = backNeighbour(i, j, k);                    
+                    suNeighbour = backNeighbour(i, j, k);
                     su.energyPressure[index] = suNeighbour.getEnergy();
                 }
             }
@@ -254,6 +251,20 @@ public class Universe {
         if(aggrEnergy != Integer.MAX_VALUE)
             System.err.println("energy has changed to:"+ Integer.toString(aggrEnergy) + " diff:" + Integer.toString(Integer.MAX_VALUE - aggrEnergy));
         return true;
+    }
+
+    void initFromSecondStep() {
+        space[middleIndex][middleIndex][middleIndex].energy = 357913942;
+        space[middleIndex + 1][middleIndex][middleIndex].energy = 357913941;
+        space[middleIndex - 1][middleIndex][middleIndex].energy = 357913941;
+        space[middleIndex][middleIndex + 1][middleIndex].energy = 357913941;
+        space[middleIndex][middleIndex - 1][middleIndex].energy = 357913941;
+        space[middleIndex][middleIndex][middleIndex + 1].energy = 357913941;
+        space[middleIndex][middleIndex][middleIndex - 1].energy = 357913941;
+        
+        this.applyEnergyPressure();
+
+        changed = true;
     }
 
 }

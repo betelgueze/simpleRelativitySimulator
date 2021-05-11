@@ -10,12 +10,11 @@ package com.busdakta.simplerelativity;
  * @author famer
  */
 public class SpaceUnit extends UpperSpaceUnit {
-    private int curTime;
     public boolean containsMatter;
     
     public SpaceUnit()
     {
-        curTime = energy = energyBefore = 0;
+        energy = energyBefore = 0;
         energyPressure = new int[6];
         containsMatter = false;
     }
@@ -96,10 +95,10 @@ public class SpaceUnit extends UpperSpaceUnit {
         
         if(energyConsumption > energyToRedistribute)
         {
-            double factor = energyToRedistribute / energyConsumption;
-            for(int item : energyPressure)
+            double factor = ((double)energyToRedistribute) / energyConsumption;
+            for(int j=0; j < 6; ++j)
             {
-                item = (int) factor*item;
+                res[j] = (int) Math.floor(factor*res[j]);
             }  
         }
                 

@@ -17,7 +17,8 @@ public class SimpleUniverseSimulator {
         Parameters.Neighbourhood n = Parameters.Neighbourhood.MOORE;
         
 	Universe u = new Universe(100,n);
-        u.initFromInfSingularity();
+        //u.initFromInfSingularity();
+        u.initFromSecondStep();
         
         UniverseVisualizator uv = new UniverseVisualizator(u);
         
@@ -34,11 +35,15 @@ public class SimpleUniverseSimulator {
             /*if(u.matterGenerationStarted && u.matterGenerationStopped)
                 throw new UnsupportedOperationException("Post matter generation - not supported yet");*/
             
+            
             //calculating invariants
             assert(u.calculateInvariants());
             
             //visualize universe
             assert(uv.update());
+            
+            if(time == 2)
+                return;
             
             //recalculates energy pressure for every SpaceUnit
             u.applyEnergyPressure();
